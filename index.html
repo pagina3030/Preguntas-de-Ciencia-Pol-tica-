@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preguntas de parciales</title>
+<style>
+:root{--bg:#f7f6f2;--card:#fff;--tx:#1f2328;--mut:#6b7280;--ac:#2f5d9e;--bd:#e2e0d8;--del:#b4373a;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#17181b;--card:#222428;--tx:#e8e8e6;--mut:#9aa0a8;--ac:#7fa8e0;--bd:#34373d;--del:#e07a7d;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:16px;max-width:760px;margin-inline:auto}
+h1{font-size:1.3rem;margin:4px 0 10px}
+details{background:var(--card);border:1px solid var(--bd);border-radius:12px;margin-bottom:10px}
+summary{padding:14px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;gap:8px}
+summary span{color:var(--mut);font-weight:400;font-size:.85rem;white-space:nowrap}
+.p{padding:0 14px 14px}
+.pd{margin-top:8px;border:0;background:none}.ps{cursor:pointer;color:var(--ac);font-weight:600;padding:8px 0;font-size:.95rem;display:block}
+.m{border:1px solid var(--bd);border-radius:10px;padding:10px;margin:8px 0;background:none}.ms{cursor:pointer;font-weight:600;font-size:.9rem;display:block;padding:4px 0}
+.mh{display:flex;gap:8px;align-items:center}.mh b{font-size:.85rem}
+ol{margin:0;padding:0;list-style:none;counter-reset:q}
+li{counter-increment:q;display:flex;gap:8px;padding:8px 0;border-top:1px solid var(--bd);font-size:.95rem}
+li::before{content:counter(q) ".";color:var(--mut);min-width:1.8em}
+li div{flex:1;white-space:pre-wrap;overflow-wrap:anywhere}
+.x{border:0;background:none;color:var(--del);font-size:1.1rem;cursor:pointer;padding:0 4px}.mv{color:var(--ac)}
+.add{display:flex;gap:8px;margin-top:8px}
+.add input,.add textarea,.yr,.ted,.sel{padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;min-width:0}
+.add textarea{flex:1;resize:vertical;min-height:44px}.yr{flex:1}.ted{width:100%;box-sizing:border-box}.sel{display:block;margin-top:6px;max-width:100%}
+.add button,.nm{padding:10px 14px;border:0;border-radius:8px;background:var(--ac);color:#fff;font:inherit;cursor:pointer}
+.nm{width:100%;margin-top:6px;background:none;border:1px dashed var(--ac);color:var(--ac)}
+.fi{font-size:.8rem;margin-top:6px;max-width:100%}
+.im{margin-top:6px}.im img{max-width:100%;border-radius:8px;display:block}.rm{margin-top:4px;border:0;background:none;color:var(--del);font:inherit;font-size:.8rem;cursor:pointer;padding:0}
+.empty{color:var(--mut);font-size:.9rem;padding:6px 0}
+#msg{background:var(--ac);color:#fff;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:.9rem}#msg:empty{display:none}
+#bar{font-size:.85rem;color:var(--mut);margin-bottom:10px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+#bar button{border:0;background:none;color:var(--ac);font:inherit;cursor:pointer;padding:0;text-decoration:underline}
+.sg{background:var(--card);border:1px solid var(--ac);border-radius:12px;padding:12px;margin-bottom:10px}.sg h2{font-size:1rem;margin:0 0 8px}
+.si{border-top:1px solid var(--bd);padding:8px 0;font-size:.9rem;white-space:pre-wrap;overflow-wrap:anywhere}.si small{color:var(--mut);display:block}
+.si button{margin:6px 8px 0 0;padding:6px 12px;border:0;border-radius:8px;background:var(--ac);color:#fff;font:inherit;cursor:pointer}.si .no{background:var(--del)}
+</style>
+</head>
+<body>
+<h1>📚 Preguntas de parciales</h1>
+<div id="bar"></div>
+<div id="msg"></div>
+<div id="sug"></div>
+<div id="app"></div>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getFirestore,collection,doc,setDoc,getDoc,addDoc,deleteDoc,onSnapshot,writeBatch} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+/* ====== PEGAR AQUÍ TUS DATOS DE FIREBASE (ver guia.md) ====== */
+const CONFIG={apiKey:"AIzaSyCVNAEUJteaKSrF-qbKhxC__hueMBMnrdg",authDomain:"cp-modelos-de-parcial-c15ee.firebaseapp.com",projectId:"cp-modelos-de-parcial-c15ee",appId:"1:155744678315:web:03a07a03931caec35c22ee"};
+const ADMIN_EMAIL="gonzalezanto2011@gmail.com";
+/* ============================================================ */
+
+const fb=initializeApp(CONFIG),db=getFirestore(fb),auth=getAuth(fb);
+const $=id=>document.getElementById(id);
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const T=["Primer parcial","Segundo parcial","Tercer parcial"];
+const qt=q=>typeof q==="string"?q:q.t,qi=q=>typeof q==="string"?[]:(q.i||[]);
+const msg=t=>{$("msg").textContent=t};
+const pad=i=>"m"+String(i).padStart(2,"0");
+let S=[],SUG=[],ADMIN=false,unsubSug=null;const OP=new Set(),IC={};
+const tg=(d,k)=>()=>{d.open?OP.add(k):OP.delete(k)};
+function two(b,t,f){if(b.dataset.s){f();return}b.dataset.s=1;b.textContent="¿Seguro?";setTimeout(()=>{b.dataset.s="";b.textContent=t},3000)}
+const save=i=>setDoc(doc(db,"materias",S[i].id),{n:S[i].n,p:S[i].p}).catch(e=>msg("No se pudo guardar: "+e.code));
+const shrink=f=>new Promise((ok,no)=>{const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{const r=Math.min(1,1000/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*r;c.height=im.height*r;const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL("image/jpeg",.75))};im.onerror=no;im.src=u});
+async function subir(file){const r=await addDoc(collection(db,"imagenes"),{d:await shrink(file)});return r.id}
+function imgBox(id,rm){const w=el("div","im"),im=el("img");w.appendChild(im);
+(IC[id]=IC[id]||getDoc(doc(db,"imagenes",id)).then(s=>s.exists()?s.data().d:"")).then(u=>im.src=u);
+if(rm){const b=el("button","rm","Quitar imagen");b.onclick=()=>two(b,"Quitar imagen",rm);w.appendChild(b)}return w}
+async function sugerir(o){try{await addDoc(collection(db,"sugerencias"),{...o,ts:Date.now()});render();msg("✅ Sugerencia enviada. El administrador la revisará.")}catch(e){msg("No se pudo enviar: "+e.code)}}
+
+function render(){
+const app=$("app");app.textContent="";
+if(!S.length){app.appendChild(el("div","empty","Aún no hay datos."+(ADMIN?" Usa «Importar datos» arriba.":"")));return}
+S.forEach((s,i)=>{
+const d=el("details");d.open=OP.has("s"+i);d.ontoggle=tg(d,"s"+i);
+const sm=el("summary",null,s.n);sm.appendChild(el("span",null,s.p.reduce((a,P)=>a+P.m.reduce((t,m)=>t+m.q.length,0),0)+" preg."));d.appendChild(sm);
+const w=el("div","p"),meto=/^Metodolog/.test(s.n);
+s.p.forEach((P,k)=>{
+const pd=el("details","pd"),pc=el("div");pd.open=OP.has(i+"-"+k);pd.ontoggle=tg(pd,i+"-"+k);
+pd.append(el("summary","ps",T[k]+" · "+P.m.reduce((t,m)=>t+m.q.length,0)+" preg."),pc);
+P.m.forEach((m,mi)=>{
+const key=i+"-"+k+"-"+mi,bx=el("details","m");bx.open=OP.has(key);bx.ontoggle=tg(bx,key);
+bx.appendChild(el("summary","ms","Modelo "+(mi+1)+(m.y?" · "+m.y:"")+" · "+m.q.length+" preg."));
+if(ADMIN){const hd=el("div","mh"),yi=el("input","yr");yi.value=m.y;yi.placeholder="Año (ej. 2023)";
+yi.onchange=()=>{m.y=yi.value.trim();save(i)};
+const dm=el("button","x","🗑");dm.title="Eliminar modelo";dm.onclick=()=>two(dm,"🗑",()=>{P.m.splice(mi,1);save(i)});
+hd.append(el("b",null,"Año:"),yi,dm);bx.appendChild(hd)}
+if(!m.q.length)bx.appendChild(el("div","empty","Sin preguntas todavía."));
+const ol=el("ol");
+m.q.forEach((q,j)=>{
+const li=el("li"),qd=el("div",null,qt(q));li.appendChild(qd);
+qi(q).forEach(id=>qd.appendChild(imgBox(id,ADMIN&&(()=>{m.q[j]={t:qt(q),i:qi(q).filter(x=>x!==id)};save(i)}))));
+if(ADMIN){const mv=el("button","x mv","⇄");mv.title="Mover a otro modelo";mv.onclick=()=>{
+if(qd.querySelector("select")){qd.querySelector("select").remove();return}
+const sel=el("select","sel");sel.appendChild(new Option("Mover a…",""));
+s.p.forEach((PP,kk)=>PP.m.forEach((mm,ii)=>{if(mm!==m)sel.appendChild(new Option(T[kk]+" · Modelo "+(ii+1)+(mm.y?" ("+mm.y+")":""),kk+"-"+ii))}));
+sel.onchange=()=>{if(!sel.value)return;const [k2,i2]=sel.value.split("-");m.q.splice(j,1);s.p[k2].m[i2].q.push(q);save(i)};
+qd.appendChild(sel)};li.appendChild(mv)}
+const ed=el("button","x mv","✎");ed.title=ADMIN?"Editar":"Sugerir una corrección";ed.onclick=()=>{
+if(qd.querySelector(".ted")){render();return}
+const ta=el("textarea","ted");ta.value=qt(q);ta.rows=5;const sv=el("button","nm",ADMIN?"Guardar":"Enviar sugerencia");
+sv.onclick=()=>{const v=ta.value.trim();if(!v)return;
+if(ADMIN){m.q[j]=typeof q==="string"?v:{t:v,i:qi(q)};save(i)}else sugerir({tipo:"edit",m:i,k,mi,viejo:qt(q),nuevo:v})};
+qd.textContent="";qd.append(ta,sv)};li.appendChild(ed);
+if(ADMIN&&meto){const lb=el("label","x mv"),sp=el("span",null,"🖼"),f=document.createElement("input");
+f.type="file";f.accept="image/*";f.style.display="none";lb.append(sp,f);lb.style.cursor="pointer";
+f.onchange=async()=>{const file=f.files[0];if(!file)return;try{sp.textContent="…";const id=await subir(file);m.q[j]={t:qt(q),i:[...qi(q),id]};save(i)}catch(e){sp.textContent="🖼";msg("No se pudo subir la imagen.")}};li.appendChild(lb)}
+const x=el("button","x","✕");x.title=ADMIN?"Eliminar":"Sugerir eliminarla";
+x.onclick=()=>two(x,"✕",()=>{if(ADMIN){m.q.splice(j,1);save(i)}else sugerir({tipo:"del",m:i,k,mi,viejo:qt(q)})});
+li.appendChild(x);ol.appendChild(li)});
+bx.appendChild(ol);
+const a=el("div","add"),inp=el("textarea");inp.rows=2;inp.placeholder=ADMIN?"Nueva pregunta (Enter = nueva línea)…":"Sugerir una pregunta nueva…";
+const bt=el("button",null,ADMIN?"Añadir":"Sugerir"),fi=el("input","fi");fi.type="file";fi.accept="image/*";
+bt.onclick=async()=>{const v=inp.value.trim();if(!v)return;
+if(ADMIN){m.q.push(v);save(i)}else{try{bt.textContent="…";const imgs=fi.files[0]?[await subir(fi.files[0])]:[];await sugerir({tipo:"add",m:i,k,mi,nuevo:v,imgs})}catch(e){bt.textContent="Sugerir";msg("No se pudo enviar: "+(e.code||e.message))}}};
+a.append(inp,bt);bx.appendChild(a);
+if(!ADMIN&&meto)bx.appendChild(fi);
+pc.appendChild(bx)});
+if(ADMIN){const nm=el("button","nm","+ Añadir modelo de parcial");nm.onclick=()=>{OP.add(i+"-"+k+"-"+P.m.length);P.m.push({y:"",q:[]});save(i)};pc.appendChild(nm)}
+w.appendChild(pd)});
+d.appendChild(w);app.appendChild(d)})}
+
+function renderSug(){
+const b=$("sug");b.textContent="";if(!ADMIN||!SUG.length)return;
+const box=el("div","sg");box.appendChild(el("h2",null,"Sugerencias pendientes ("+SUG.length+")"));
+SUG.forEach(g=>{const s=S[g.m],si=el("div","si"),T0={add:"Añadir pregunta",edit:"Cambiar pregunta",del:"Eliminar pregunta"}[g.tipo];
+si.appendChild(el("small",null,(s?s.n:"?")+" · "+T[g.k]+" · Modelo "+(g.mi+1)+" — "+T0));
+if(g.viejo)si.appendChild(document.createTextNode((g.tipo==="del"?"":"Antes: ")+g.viejo+"\n"));
+if(g.nuevo)si.appendChild(document.createTextNode((g.tipo==="add"?"":"Ahora: ")+g.nuevo));
+(g.imgs||[]).forEach(id=>si.appendChild(imgBox(id)));
+const ok=el("button",null,"Aceptar"),no=el("button","no","Rechazar");ok.onclick=()=>aceptar(g);no.onclick=()=>rechazar(g);
+si.append(document.createElement("br"),ok,no);box.appendChild(si)});
+b.appendChild(box)}
+async function aceptar(g){const s=S[g.m],m=s&&s.p[g.k]&&s.p[g.k].m[g.mi];
+if(!m){msg("Ese modelo ya no existe. Rechaza la sugerencia.");return}
+if(g.tipo==="add")m.q.push(g.imgs&&g.imgs.length?{t:g.nuevo,i:g.imgs}:g.nuevo);
+else{const j=m.q.findIndex(q=>qt(q)===g.viejo);if(j<0){msg("La pregunta original ya cambió o no existe. Rechaza la sugerencia.");return}
+if(g.tipo==="del")m.q.splice(j,1);else m.q[j]=typeof m.q[j]==="string"?g.nuevo:{t:g.nuevo,i:qi(m.q[j])}}
+await save(g.m);await deleteDoc(doc(db,"sugerencias",g.id))}
+async function rechazar(g){for(const id of g.imgs||[])deleteDoc(doc(db,"imagenes",id)).catch(()=>{});await deleteDoc(doc(db,"sugerencias",g.id))}
+
+function bar(u){const b=$("bar");b.textContent="";
+if(ADMIN){b.append(el("span",null,"✔ Administrador"));
+const im=el("button",null,"Importar datos"),f=document.createElement("input");f.type="file";f.accept=".json";f.style.display="none";
+im.onclick=()=>two(im,"Importar datos",()=>f.click());
+f.onchange=async()=>{try{const j=JSON.parse(await f.files[0].text()),bt=writeBatch(db);
+j.materias.forEach((x,i)=>bt.set(doc(db,"materias",pad(i)),x));
+Object.entries(j.imagenes||{}).forEach(([id,d])=>bt.set(doc(db,"imagenes",id),{d}));
+await bt.commit();msg("Datos importados.")}catch(e){msg("No se pudo importar: "+(e.code||e.message))}};
+const out=el("button",null,"Salir");out.onclick=()=>signOut(auth);b.append(im,f,out)}
+else{b.append(el("span",null,"Puedes sugerir cambios con ✎, ✕ y «Sugerir»."));
+const l=el("button",null,u?"Esta cuenta no es administradora · cambiar":"Soy administrador");
+l.onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>msg("No se pudo entrar: "+e.code));b.appendChild(l)}}
+
+onSnapshot(collection(db,"materias"),s=>{S=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.id<b.id?-1:1);render();renderSug()},e=>msg("No se pudo cargar: "+e.code));
+onAuthStateChanged(auth,u=>{ADMIN=!!(u&&u.email===ADMIN_EMAIL);bar(u);
+if(unsubSug){unsubSug();unsubSug=null}SUG=[];
+if(ADMIN)unsubSug=onSnapshot(collection(db,"sugerencias"),s=>{SUG=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.ts-b.ts);renderSug()},e=>msg("No se pudieron leer sugerencias: "+e.code));
+render();renderSug()});
+</script>
+</body>
+</html>
