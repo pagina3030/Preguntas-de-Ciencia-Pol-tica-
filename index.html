@@ -28,6 +28,10 @@ li div{flex:1;white-space:pre-wrap;overflow-wrap:anywhere}
 .nm{width:100%;margin-top:6px;background:none;border:1px dashed var(--ac);color:var(--ac)}
 .fi{font-size:.8rem;margin-top:6px;max-width:100%}
 .im{margin-top:6px}.im img{max-width:100%;border-radius:8px;display:block}.rm{margin-top:4px;border:0;background:none;color:var(--del);font:inherit;font-size:.8rem;cursor:pointer;padding:0}
+#tabs{display:flex;gap:8px;margin-bottom:12px}#tabs button{flex:1;padding:10px 6px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--tx);font:inherit;font-weight:600;cursor:pointer}#tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}.hide{display:none}
+.it{display:flex;gap:6px;padding:8px 0;border-top:1px solid var(--bd);font-size:.95rem}.iv{flex:1;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere}.iv small{color:var(--mut)}
+.ti{display:block;width:100%;box-sizing:border-box;margin-bottom:6px;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+.yt{font-size:.72rem;font-weight:700;padding:1px 6px;border-radius:6px;color:#fff;background:var(--mut)}.y1{background:#2c4a7c}.y2{background:#8a2f35}.y3{background:#9a7418}.y4{background:#3c6648}
 .empty{color:var(--mut);font-size:.9rem;padding:6px 0}
 #msg{background:var(--ac);color:#fff;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:.9rem}#msg:empty{display:none}
 #bar{font-size:.85rem;color:var(--mut);margin-bottom:10px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
@@ -41,8 +45,11 @@ li div{flex:1;white-space:pre-wrap;overflow-wrap:anywhere}
 <h1>📚 Preguntas de parciales</h1>
 <div id="bar"></div>
 <div id="msg"></div>
+<div id="tabs"></div>
 <div id="sug"></div>
 <div id="app"></div>
+<div id="guia" class="hide"></div>
+<div id="aulas" class="hide"></div>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getFirestore,collection,doc,setDoc,getDoc,addDoc,deleteDoc,onSnapshot,writeBatch} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -142,6 +149,137 @@ if(g.tipo==="del")m.q.splice(j,1);else m.q[j]=typeof m.q[j]==="string"?g.nuevo:{
 await save(g.m);await deleteDoc(doc(db,"sugerencias",g.id))}
 async function rechazar(g){for(const id of g.imgs||[])deleteDoc(doc(db,"imagenes",id)).catch(()=>{});await deleteDoc(doc(db,"sugerencias",g.id))}
 
+/* ===== Guía y Aulas ===== */
+const X={guia:null,aulas:null};
+let TAB=({"#guia":"guia","#aulas":"aulas"})[location.hash]||"p";
+const AU=`Lunes|1|Teoría Política I|21:00·23:00|Aula Virtual
+Lunes|2|Historia Política Americana|19:00·23:00|Aula 414
+Lunes|2|Teoría Política II|19:00·21:00|Aula Virtual
+Lunes|3|Economía Política Argentina|19:00·23:00|Aula 336
+Lunes|4|Derecho Administrativo|19:00·23:00|Aula 331
+Lunes|4|Finanzas Públicas|19:00·23:00|Aula 318
+Lunes|4|Taller Gest. Pol. Sociales|19:00·23:00|Aula 234
+Lunes|4|Taller Gest. Pol. de Producción|21:00·23:00|Aula 234
+Martes|1|Elementos de Filosofía|19:00·23:00|Aula 211
+Martes|1|Elementos de Economía|19:00·23:00|Aula 234
+Martes|2|Metodología de la Investigación I|19:00·23:00|Aula 221
+Martes|2|Teoría Política II|19:00·23:00|Aula 112
+Martes|3|Demografía Social|19:00·23:00|Aula 238
+Martes|3|Sistemas Políticos Comparados|19:00·23:00|Aula 233
+Martes|3|Seminario de Tópicos de Avanzada|19:00·23:00|Aula 318
+Miércoles|1|Elementos de Sociología|19:00·23:00|Aula 211
+Miércoles|1|Teoría Política I|19:00·23:00|Aula 501A
+Miércoles|2|Teoría Sociológica|19:00·23:00|Aula 234
+Miércoles|2|Economía I|19:00·23:00|Aula 222
+Miércoles|3|Política y Comunicación|19:00·23:00|Aula 221
+Miércoles|3|Metodología de la Investigación II|19:00·23:00|Aula LAB 11
+Miércoles|3|Gestión de Políticas Públicas|19:00·23:00|Aula 504B
+Miércoles|3|Teoría Política Contemporánea|19:00·23:00|Aula 318
+Miércoles|4|Taller Gest. Pol. Sociales|19:00·23:00|Aula 336
+Jueves|1|Introducción a la Ciencia Política|19:00·23:00|Aula 308
+Jueves|1|Taller de Integración|19:00·23:00|Aula 516
+Jueves|2|Procesos Sociohistóricos Argentinos|19:00·23:00|Aula 318
+Jueves|2|Economía II|19:00·23:00|Aula 234
+Jueves|4|Psicosociología de las Organizaciones|19:00·23:00|Aula 221
+Jueves|4|Taller Gest. Pol. de Producción|19:00·23:00|Aula 227
+Viernes|1|Procesos Sociohistóricos Mundiales|19:00·23:00|Aula 222
+Viernes|1|Elementos de Administración|19:00·23:00|Aula 234
+Viernes|2|Administración Pública|19:00·23:00|Aula 221
+Viernes|4|Teoría Política Contemporánea|19:00·21:00|Aula Virtual
+Viernes|4|Relaciones Internacionales|19:00·23:00|Aula 213
+Sábado|3|Derecho Constitucional|09:00·13:00|Aula 225
+Tecnicatura|Jueves|Estadística Administrativa||LAB 6
+Tecnicatura|Sábado|Gobierno Local y Municipios||Aula 210`;
+const ES=`Lunes|1|Teoría Política I|+ Mié
+Lunes|2|Historia Política Americana|
+Lunes|2|Teoría Política II|+ Mar
+Lunes|3|Economía Política Argentina|
+Lunes|4|Derecho Administrativo|
+Lunes|4|Finanzas Públicas|
+Lunes|4|Taller Gestión Pol. Sociales|+ Mié
+Lunes|4|Taller Gestión Pol. Producción|+ Jue
+Martes|1|Elementos de Filosofía|
+Martes|1|Elementos de Economía|
+Martes|2|Metodología de la Investigación I|
+Martes|2|Teoría Política II|+ Lun
+Martes|3|Demografía Social|
+Martes|3|Sistemas Políticos Comparados|
+Martes|4|Seminario de Tópicos de Avanzada|
+Miércoles|1|Elementos de Sociología|
+Miércoles|1|Teoría Política I|+ Lun
+Miércoles|2|Teoría Sociológica|
+Miércoles|2|Economía I|
+Miércoles|3|Política y Comunicación|
+Miércoles|3|Metodología de la Investigación II|
+Miércoles|3|Gestión de Políticas Públicas|
+Miércoles|3|Teoría Política Contemporánea|+ Vie
+Miércoles|4|Taller Gestión Pol. Sociales|+ Lun
+Jueves|1|Introducción a la Ciencia Política|
+Jueves|1|Taller de Integración|
+Jueves|2|Procesos Sociohistóricos Argentinos|
+Jueves|2|Economía II|
+Jueves|4|Psicosociología de las Organizaciones|
+Jueves|4|Taller Gestión Pol. Producción|+ Lun
+Viernes|1|Procesos Sociohistóricos Mundiales|
+Viernes|1|Elementos de Administración|
+Viernes|2|Administración Pública|
+Viernes|3|Teoría Política Contemporánea|+ Mié
+Viernes|4|Relaciones Internacionales|
+Sábado|3|Derecho Constitucional|`;
+const RG=`Priorizá lo troncal|REGLA|Ante un choque, elegí la materia que abre camino a Teoría Política II, Teoría Política Contemporánea o los Talleres finales.
+Dejá para después lo que no habilita nada|REGLA|Filosofía, Historia Política Americana, Procesos Socio. Argentinos y Relaciones Internacionales no atrasan a nadie si se corren.
+Buscá el próximo día libre|REGLA|La materia que no priorizaste no se pierde: va al otro cuatrimestre del año, o al siguiente, apenas ese día quede libre.
+Miércoles es el cuello de botella|ATENCIÓN|9 materias piden miércoles y solo hay 8 cuatrimestres en 4 años: inevitablemente suma un cuatrimestre más a la carrera, salvo que alguna esté disponible en el intensivo de verano.
+Los dos Talleres finales van juntos|A FAVOR|Caen los dos lunes pero en horarios distintos: se pueden cursar en el mismo cuatrimestre sin problema.
+Usá Inglés y Computación de comodín|TIP|Tienen comisión todos los días: sumalas en los cuatrimestres livianos en vez de forzar una materia de la carrera.
+Adelantá Finanzas Públicas y Derecho Administrativo|TIP|Ninguna de las dos tiene demasiadas correlativas pendientes: conviene cursarlas apenas se pueda y no dejarlas para cuarto año, donde los lunes ya se acumulan con los Talleres finales.`;
+const CH=`Segundo año, miércoles|Priorizá Teoría Sociológica sobre Economía I.
+Tercer año, miércoles|Priorizá Metodología II sobre Política y Comunicación.
+Tercer año, miércoles|Priorizá Gestión de Políticas Públicas sobre Teoría Política Contemporánea.
+Si choca: Taller de Integración vs. Procesos Sociohist. Argentinos|Priorizá Taller de Integración (abre Metodología I y toda la cadena metodológica).
+Si choca: Teoría Política I vs. Teoría Sociológica|Para Teoría Política II vas a necesitar las dos aprobadas de todos modos, así que el orden no es tan crítico por ese lado. Un matiz a favor de Teoría Política I: cursa lunes y miércoles, y abre Historia Política Americana — una materia de los lunes, día recargado. Adelantarla ayuda a descomprimir esa agenda más adelante.
+Si choca: Gestión de Políticas Públicas vs. Política y Comunicación|Priorizá Gestión de Políticas Públicas (abre los dos Talleres finales).
+Nota|Un choque de día pesa tanto como una correlativa pendiente.`;
+const rows=t=>t.trim().split("\n").map(l=>l.split("|")),YR={1:"1er año",2:"2do año",3:"3er año",4:"4to año"};
+function grp(rs,mk){const g=[];rs.forEach(r=>{let x=g.find(y=>y.d===r[0]);if(!x)g.push(x={d:r[0],items:[]});x.items.push(mk(r))});return g}
+const SEED={aulas:()=>({g:grp(rows(AU),r=>({a:YR[r[1]]||r[1],m:r[2],h:r[3],r:r[4]}))}),
+guia:()=>({g:grp(rows(ES),r=>({a:YR[r[1]],m:r[2],n:r[3]||""})),reg:rows(RG).map(r=>({t:r[0],tag:r[1],x:r[2]})),cho:rows(CH).map(r=>({t:r[0],x:r[1]}))})};
+const FA=[["a","Año (ej. 1er año)"],["m","Materia"],["h","Horario"],["r","Aula"]],FE=[["a","Año (ej. 1er año)"],["m","Materia"],["n","Nota (ej. + Mié)"]],FR=[["t","Título"],["tag","Etiqueta (REGLA, TIP…)"],["x","Texto"]],FC=[["t","Título"],["x","Texto"]];
+const yt=a=>el("span","yt y"+(parseInt(a)||0),a||"");
+const shA=(it,j,v)=>v.append(yt(it.a),document.createTextNode(" "+(it.m||"")),el("br"),el("small",null,[it.h,it.r].filter(Boolean).join(" · ")));
+const shE=(it,j,v)=>v.append(yt(it.a),document.createTextNode(" "+(it.m||"")+(it.n?" ("+it.n+")":"")));
+const shR=(it,j,v)=>{v.append(el("b",null,String(j+1).padStart(2,"0")+" "+(it.t||"")));if(it.tag)v.append(el("small",null," · "+it.tag));v.append(el("br"),document.createTextNode(it.x||""))};
+const shC=(it,j,v)=>v.append(el("b",null,it.t||""),el("br"),document.createTextNode(it.x||""));
+function saveX(k){const {id,...r}=X[k];setDoc(doc(db,"materias","x_"+k),r).catch(e=>msg("No se pudo guardar: "+e.code))}
+function listUI(arr,F,show,sv){const box=el("div");
+arr.forEach((it,j)=>{const li=el("div","it"),v=el("div","iv");show(it,j,v);li.appendChild(v);
+if(ADMIN){const e=el("button","x mv","✎");e.onclick=()=>{if(v.querySelector(".ti")){renderX();return}
+v.textContent="";const ins=F.map(([k,l])=>{const i=el(k==="x"?"textarea":"input","ti");if(k==="x")i.rows=4;i.placeholder=l;i.value=it[k]||"";v.appendChild(i);return[k,i]});
+const b=el("button","nm","Guardar");b.onclick=()=>{ins.forEach(([k,i])=>{it[k]=i.value.trim()});sv()};v.appendChild(b)};
+const d=el("button","x","✕");d.onclick=()=>two(d,"✕",()=>{arr.splice(j,1);sv()});li.append(e,d);
+box.appendChild(li);if(F.every(([k])=>!it[k]))e.onclick();return}
+box.appendChild(li)});
+if(ADMIN){const a=el("button","nm","+ Añadir");a.onclick=()=>{arr.push(Object.fromEntries(F.map(([k])=>[k,""])));sv()};box.appendChild(a)}
+return box}
+function groups(key,garr,F,show){const sv=()=>saveX(key),w=el("div");
+garr.forEach((g,gi)=>{const k="g"+key+gi,d=el("details","pd");d.open=OP.has(k);d.ontoggle=tg(d,k);
+d.appendChild(el("summary","ps",g.d+" · "+g.items.length));const c=el("div");
+if(ADMIN){const h=el("div","mh"),n=el("input","yr");n.value=g.d;n.onchange=()=>{g.d=n.value.trim()||g.d;sv()};
+const x=el("button","x","🗑");x.title="Eliminar grupo";x.onclick=()=>two(x,"🗑",()=>{garr.splice(gi,1);sv()});h.append(n,x);c.appendChild(h)}
+c.appendChild(listUI(g.items,F,show,sv));d.appendChild(c);w.appendChild(d)});
+if(ADMIN){const a=el("button","nm","+ Añadir día o grupo");a.onclick=()=>{garr.push({d:"Nuevo",items:[]});OP.add("g"+key+(garr.length-1));sv()};w.appendChild(a)}
+return w}
+function blk(t,c){const d=el("details"),k="b"+t;d.open=OP.has(k);d.ontoggle=tg(d,k);d.appendChild(el("summary",null,t));const w=el("div","p");w.appendChild(c);d.appendChild(w);return d}
+function renderX(){
+[["guia",$("guia")],["aulas",$("aulas")]].forEach(([key,root])=>{root.textContent="";const D=X[key];
+if(!D){root.appendChild(el("div","empty","Todavía no hay contenido."));
+if(ADMIN){const b=el("button","nm","Cargar contenido inicial");b.onclick=()=>setDoc(doc(db,"materias","x_"+key),SEED[key]()).catch(e=>msg("No se pudo guardar: "+e.code));root.appendChild(b)}return}
+if(key==="aulas")root.appendChild(groups("aulas",D.g,FA,shA));
+else{root.append(blk("Esquema semanal",groups("guia",D.g,FE,shE)),blk("Reglas para elegir qué cursar",listUI(D.reg,FR,shR,()=>saveX("guia"))),blk("Qué priorizar, choque por choque",listUI(D.cho,FC,shC,()=>saveX("guia"))))}})}
+function tabs(){const t=$("tabs");t.textContent="";
+[["p","📚 Preguntas"],["guia","🧭 Guía"],["aulas","🏫 Aulas"]].forEach(([k,l])=>{const b=el("button",k===TAB?"on":"",l);b.onclick=()=>{TAB=k;history.replaceState(null,"",k==="p"?location.pathname:"#"+k);tabs()};t.appendChild(b)});
+$("app").classList.toggle("hide",TAB!=="p");$("guia").classList.toggle("hide",TAB!=="guia");$("aulas").classList.toggle("hide",TAB!=="aulas")}
+
 function bar(u){const b=$("bar");b.textContent="";
 if(ADMIN){b.append(el("span",null,"✔ Administrador"));
 const im=el("button",null,"Importar datos"),f=document.createElement("input");f.type="file";f.accept=".json";f.style.display="none";
@@ -155,11 +293,12 @@ else{b.append(el("span",null,"Puedes sugerir cambios con ✎, ✕ y «Sugerir».
 const l=el("button",null,u?"Esta cuenta no es administradora · cambiar":"Soy administrador");
 l.onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(e=>msg("No se pudo entrar: "+e.code));b.appendChild(l)}}
 
-onSnapshot(collection(db,"materias"),s=>{S=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.id<b.id?-1:1);render();renderSug()},e=>msg("No se pudo cargar: "+e.code));
+onSnapshot(collection(db,"materias"),s=>{const all=s.docs.map(d=>({id:d.id,...d.data()}));S=all.filter(d=>/^m\d+$/.test(d.id)).sort((a,b)=>a.id<b.id?-1:1);X.guia=all.find(d=>d.id==="x_guia")||null;X.aulas=all.find(d=>d.id==="x_aulas")||null;render();renderSug();renderX()},e=>msg("No se pudo cargar: "+e.code));
 onAuthStateChanged(auth,u=>{ADMIN=!!(u&&u.email===ADMIN_EMAIL);bar(u);
 if(unsubSug){unsubSug();unsubSug=null}SUG=[];
 if(ADMIN)unsubSug=onSnapshot(collection(db,"sugerencias"),s=>{SUG=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.ts-b.ts);renderSug()},e=>msg("No se pudieron leer sugerencias: "+e.code));
-render();renderSug()});
+render();renderSug();renderX()});
+tabs();renderX();
 </script>
 </body>
 </html>
